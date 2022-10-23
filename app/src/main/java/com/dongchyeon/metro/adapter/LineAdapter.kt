@@ -26,7 +26,8 @@ class LineAdapter(private val context: Context) :
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val lineView = itemView.findViewById<TextView>(R.id.lineText)
-        private val recyclerView = itemView.findViewById<RecyclerView>(R.id.recyclerView)
+        private val recyclerView1 = itemView.findViewById<RecyclerView>(R.id.recyclerView1)
+        private val recyclerView2 = itemView.findViewById<RecyclerView>(R.id.recyclerView2)
 
         companion object {
             fun create(parent: ViewGroup): ViewHolder {
@@ -45,11 +46,16 @@ class LineAdapter(private val context: Context) :
                 "외선" -> lineView.setBackgroundResource(R.drawable.pale_blue_rectangle)
             }
 
-            val adapter = SubwayAdapter()
-            recyclerView.layoutManager = LinearLayoutManager(context)
-            recyclerView.adapter = adapter
+            val subwayAdapter = SubwayAdapter()
+            recyclerView1.layoutManager = LinearLayoutManager(context)
+            recyclerView1.adapter = subwayAdapter
 
-            adapter.submitList(item.subwayList)
+            val seatInfoAdapter = SeatInfoAdapter(context)
+            recyclerView2.layoutManager = LinearLayoutManager(context)
+            recyclerView2.adapter = seatInfoAdapter
+
+            subwayAdapter.submitList(item.subwayList)
+            seatInfoAdapter.submitList(item.seatList)
         }
     }
 
