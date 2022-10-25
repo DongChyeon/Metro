@@ -4,22 +4,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.dongchyeon.metro.R
 
-class SeatAdapter : ListAdapter<Int, SeatAdapter.ViewHolder>(SeatComparator()) {
+class SeatAdapter(private val people: String) :
+    ListAdapter<Int, SeatAdapter.ViewHolder>(SeatComparator()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder.create(parent)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val current = getItem(position)
-        holder.bind(current)
+        holder.bind(current, people)
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val layout = itemView.findViewById<ConstraintLayout>(R.id.layout)
         private val seatCount = itemView.findViewById<TextView>(R.id.seat_count)
 
         companion object {
@@ -30,8 +33,15 @@ class SeatAdapter : ListAdapter<Int, SeatAdapter.ViewHolder>(SeatComparator()) {
             }
         }
 
-        fun bind(item: Int) {
+        fun bind(item: Int, people: String) {
             seatCount.text = item.toString()
+            if (people == "pregnant") {
+                if (item == 0) layout.setBackgroundResource(R.color.pale_pink)
+                else layout.setBackgroundResource(R.color.pink)
+            } else if (people == "elderly") {
+                if (item == 0) layout.setBackgroundResource(R.color.gray)
+                else layout.setBackgroundResource(R.color.black)
+            }
         }
     }
 

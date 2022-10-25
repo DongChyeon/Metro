@@ -40,12 +40,12 @@ class SeatInfoAdapter(private val context: Context) :
         fun bind(item: SeatInfo, context: Context) {
             lineText.text = item.trainLineNm
 
-            val pregnantAdapter = SeatAdapter()
+            val pregnantAdapter = SeatAdapter("pregnant")
             recyclerView1.layoutManager =
                 LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
             recyclerView1.adapter = pregnantAdapter
 
-            val elderlyAdapter = SeatAdapter()
+            val elderlyAdapter = SeatAdapter("elderly")
             recyclerView2.layoutManager =
                 LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
             recyclerView2.adapter = elderlyAdapter
