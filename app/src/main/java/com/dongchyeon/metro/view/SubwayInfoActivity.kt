@@ -1,6 +1,7 @@
 package com.dongchyeon.metro.view
 
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -25,6 +26,14 @@ class SubwayInfoActivity : AppCompatActivity() {
 
         val statnNm = intent.getStringExtra("statnNm") ?: ""
         binding.stnNmEdit.setText(statnNm)
+        binding.stnNmEdit.setOnKeyListener { _, keyCode, event ->
+            if ((event.action == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                subwayViewModel.loadData(binding.stnNmEdit.text.toString())
+                true
+            } else {
+                false
+            }
+        }
         subwayViewModel.loadData(statnNm)
 
         val adapter = LineAdapter(applicationContext)

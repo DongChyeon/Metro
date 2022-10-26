@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SubwayViewModel @Inject constructor(private val repository: NetworkRepository) : ViewModel() {
-    val liveData = MutableLiveData<List<SubwayInfo>>()
+    private val liveData = MutableLiveData<List<SubwayInfo>>()
 
     fun getData() = liveData
 
@@ -48,8 +48,11 @@ class SubwayViewModel @Inject constructor(private val repository: NetworkReposit
                     }
                 }
 
+                val keyList: List<String> =
+                    stationInfo.keys.toList().sortedWith(UpdnLineComparator())
+
                 val subwayList = ArrayList<SubwayInfo>()
-                for ((key) in stationInfo) {
+                for (key in keyList) {
                     subwayList.add(SubwayInfo(key, stationInfo[key]!!, seatInfo[key]!!))
                 }
 
@@ -57,6 +60,27 @@ class SubwayViewModel @Inject constructor(private val repository: NetworkReposit
             } else {
                 Log.d("result", "너 조진거야")
             }
+        }
+    }
+
+    class UpdnLineComparator : Comparator<String> {
+        override fun compare(p0: String?, p1: String?): Int {
+            val a = when (p0) {
+                "상행" -> 0
+                "하행" -> 1
+                "외선" -> 2
+                "내선" -> 3
+                else -> 4
+            }
+            val b = when (p1) {
+                "상행" -> 0
+                "하행" -> 1
+                "외선" -> 2
+                "내선" -> 3
+                else -> 4
+            }
+
+            return a - b
         }
     }
 }

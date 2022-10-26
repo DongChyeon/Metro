@@ -33,8 +33,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:layout_weight="1"
-                android:maxLines="1"
                 android:hint="지하철역명을 입력해주세요."
+                android:imeOptions="actionSearch"
+                android:maxLines="1"
                 android:minHeight="48dp" />
 
             <Button
