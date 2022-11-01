@@ -40,7 +40,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideSubwayServcie(retrofit: Retrofit): GetRealTimeStationArrivalService {
+    fun provideSubwayService(retrofit: Retrofit): GetRealTimeStationArrivalService {
         return retrofit.create(GetRealTimeStationArrivalService::class.java)
     }
 
