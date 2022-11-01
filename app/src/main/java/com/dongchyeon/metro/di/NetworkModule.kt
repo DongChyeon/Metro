@@ -1,11 +1,14 @@
 package com.dongchyeon.metro.di
 
+import android.content.Context
 import com.dongchyeon.metro.BuildConfig
 import com.dongchyeon.metro.data.network.NetworkRepository
 import com.dongchyeon.metro.data.network.service.GetRealTimeStationArrivalService
+import com.dongchyeon.metro.repository.BleRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -18,7 +21,7 @@ import javax.inject.Singleton
 object NetworkModule {
     @Singleton
     @Provides
-    fun provideOkHttpClient() = if (BuildConfig.DEBUG) {
+    fun providesOkHttpClient() = if (BuildConfig.DEBUG) {
         val loggingInterceptor = HttpLoggingInterceptor()
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
         OkHttpClient.Builder()
@@ -30,7 +33,7 @@ object NetworkModule {
 
     @Singleton
     @Provides
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+    fun providesRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl("http://swopenAPI.seoul.go.kr")
@@ -46,6 +49,11 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideNetworkRepository(subwayService: GetRealTimeStationArrivalService) =
+    fun providesNetworkRepository(subwayService: GetRealTimeStationArrivalService) =
         NetworkRepository(subwayService)
+
+    @Provides
+    @Singleton
+    fun providesBleRepository(@ApplicationContext context: Context) =
+        BleRepository(context)
 }

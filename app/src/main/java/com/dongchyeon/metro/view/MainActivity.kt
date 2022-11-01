@@ -1,76 +1,62 @@
 package com.dongchyeon.metro.view
 
-import android.Manifest.permission.*
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
-import android.widget.Toast
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.app.ActivityCompat
+import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.dongchyeon.metro.App.Companion.bluetoothAdapter
-import com.dongchyeon.metro.ConnectThread
-import com.dongchyeon.metro.Constants.Companion.REQUEST_ALL_PERMISSION
-import com.dongchyeon.metro.adapter.BtAdapter
+import com.dongchyeon.metro.R
+import com.dongchyeon.metro.adapter.BleAdapter
 import com.dongchyeon.metro.databinding.ActivityMainBinding
+import com.dongchyeon.metro.util.Constants.Companion.PERMISSIONS
+import com.dongchyeon.metro.util.Constants.Companion.REQUEST_PERMISSION
+import com.dongchyeon.metro.viewmodel.MainViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private val registerForResult = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            Toast.makeText(applicationContext, "블루투스 연결 완료", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(applicationContext, "블루투스 연결 실패", Toast.LENGTH_SHORT).show()
-        }
-    }
+    private lateinit var bleAdapter: BleAdapter
+    private val viewModel: MainViewModel by viewModels()
 
     @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
+        binding = DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
+        binding.viewModel = viewModel
 
-        grantPermissions()
-        checkBluetooth()
-        enableBluetooth()
-
-        val adapter = BtAdapter()
+        bleAdapter = BleAdapter()
         binding.btRecyclerView.layoutManager = LinearLayoutManager(applicationContext)
-        binding.btRecyclerView.adapter = adapter
-        adapter.setOnItemClickListener(object : BtAdapter.OnItemClickListener {
+        binding.btRecyclerView.adapter = bleAdapter
+        bleAdapter.setOnItemClickListener(object : BleAdapter.OnItemClickListener {
             override fun onItemClick(view: View, position: Int) {
                 binding.constraintLayout.visibility = View.GONE
-
-                val address = adapter.getDevice(position).second
-                val device = bluetoothAdapter.getRemoteDevice(address)
-
-                val connectThread = ConnectThread(device)
-                connectThread.start()
+                viewModel.connectDevice(bleAdapter.getDevice(position))
             }
         })
 
+        // 필요 권한 체크 후 허용
+        requirePermissions(applicationContext, PERMISSIONS)
+
         binding.btBtn.setOnClickListener {
             binding.constraintLayout.visibility = View.VISIBLE
-
-            val pairedDevices = ArrayList<Pair<String, String>>()
-            for (device in bluetoothAdapter.bondedDevices) {
-                pairedDevices.add(Pair(device.name, device.address))
-            }
-
-            adapter.submitList(pairedDevices)
+            viewModel.onClickScan()
         }
 
         // 다크모드 비활성화
@@ -91,38 +77,79 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("statnNm", binding.stnNmEdit.text.toString())
             startActivity(intent)
         }
+
+        initObserver(binding)
     }
 
-    private fun checkBluetooth() {
-        fun PackageManager.missingSystemFeature(name: String): Boolean = !hasSystemFeature(name)
+    private fun initObserver(binding: ActivityMainBinding) {
+        viewModel.requestEnableBLE.observe(this) {
+            it.getContentIfNotHandled()?.let {
+                requestEnableBLE()
+            }
+        }
+        viewModel.listUpdate.observe(this) {
+            it.getContentIfNotHandled()?.let { scanResults ->
+                bleAdapter.submitList(scanResults)
+            }
+        }
 
-        packageManager.takeIf { it.missingSystemFeature(PackageManager.FEATURE_BLUETOOTH) }?.also {
-            Toast.makeText(this, "bluetooth가 지원 되지 않습니다.", Toast.LENGTH_SHORT).show()
+        viewModel._isScanning.observe(this) {
+            it.getContentIfNotHandled()?.let { scanning ->
+                viewModel.isScanning.set(scanning)
+            }
+        }
+        viewModel._isConnect.observe(this) {
+            it.getContentIfNotHandled()?.let { connect ->
+                viewModel.isConnect.set(connect)
+            }
+        }
+        viewModel.statusTxt.observe(this) {
+            binding.statusText.text = it
+        }
+
+        viewModel.readTxt.observe(this) {
+            Log.d("read", it)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // finish app if the BLE is not supported
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             finish()
         }
-        packageManager.takeIf { it.missingSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) }
-            ?.also {
-                Toast.makeText(this, "ble가 지원 되지 않습니다.", Toast.LENGTH_SHORT).show()
-                finish()
+    }
+
+    private val requestEnableBleResult =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val intent = result.data
+                // do somthing after enableBleRequest
             }
+        }
+
+    /**
+     * Request BLE enable
+     */
+    private fun requestEnableBLE() {
+        val bleEnableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+        requestEnableBleResult.launch(bleEnableIntent)
     }
 
-
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun grantPermissions() {
-        val permissions = arrayOf(
-            ACCESS_FINE_LOCATION,
-            ACCESS_COARSE_LOCATION,
-            BLUETOOTH_CONNECT
-        )
-
-        requestPermissions(permissions, REQUEST_ALL_PERMISSION)
-    }
-
-    private fun enableBluetooth() {
-        if (!bluetoothAdapter.isEnabled) {
-            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            registerForResult.launch(enableBtIntent)
+    private fun requirePermissions(context: Context?, permissions: Array<String>) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null) {
+            for (permission in permissions) {
+                if (ActivityCompat.checkSelfPermission(
+                        context,
+                        permission
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    requestPermissions(
+                        arrayOf(permission), // 1
+                        REQUEST_PERMISSION
+                    )
+                }
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.dongchyeon.metro.adapter
 
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothDevice
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,7 +11,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.dongchyeon.metro.R
 
-class BtAdapter() : ListAdapter<Pair<String, String>, BtAdapter.ViewHolder>(BtComparator()) {
+class BleAdapter() : ListAdapter<BluetoothDevice, BleAdapter.ViewHolder>(BtComparator()) {
     private lateinit var listener: OnItemClickListener
 
     interface OnItemClickListener {
@@ -32,37 +34,40 @@ class BtAdapter() : ListAdapter<Pair<String, String>, BtAdapter.ViewHolder>(BtCo
         }
     }
 
-    fun getDevice(position: Int): Pair<String, String> {
+    fun getDevice(position: Int): BluetoothDevice {
         return getItem(position)
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val deviceNm = itemView.findViewById<TextView>(R.id.deviceNmText)
+        private val bleNm = itemView.findViewById<TextView>(R.id.ble_name)
+        private val bleAddress = itemView.findViewById<TextView>(R.id.ble_address)
 
         companion object {
             fun create(parent: ViewGroup): ViewHolder {
                 val view: View = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.bt_item, parent, false)
+                    .inflate(R.layout.ble_item, parent, false)
                 return ViewHolder(view)
             }
         }
 
-        fun bind(item: Pair<String, String>) {
-            deviceNm.text = item.first
+        @SuppressLint("MissingPermission")
+        fun bind(item: BluetoothDevice) {
+            bleNm.text = item.name
+            bleAddress.text = item.address
         }
     }
 
-    class BtComparator : DiffUtil.ItemCallback<Pair<String, String>>() {
+    class BtComparator : DiffUtil.ItemCallback<BluetoothDevice>() {
         override fun areItemsTheSame(
-            oldItem: Pair<String, String>,
-            newItem: Pair<String, String>
+            oldItem: BluetoothDevice,
+            newItem: BluetoothDevice
         ): Boolean {
             return oldItem == newItem
         }
 
         override fun areContentsTheSame(
-            oldItem: Pair<String, String>,
-            newItem: Pair<String, String>
+            oldItem: BluetoothDevice,
+            newItem: BluetoothDevice
         ): Boolean {
             return oldItem == newItem
         }
