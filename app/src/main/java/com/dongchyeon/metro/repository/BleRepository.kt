@@ -8,12 +8,11 @@ import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.Context.BLUETOOTH_SERVICE
-import android.os.ParcelUuid
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.dongchyeon.metro.util.BluetoothUtils
 import com.dongchyeon.metro.util.Constants.Companion.CLIENT_CHARACTERISTIC_CONFIG
-import com.dongchyeon.metro.util.Constants.Companion.SERVICE_STRING
+import com.dongchyeon.metro.util.Constants.Companion.MAC_ADDR
 import com.dongchyeon.metro.util.Event
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
@@ -71,10 +70,10 @@ class BleRepository(private val context: Context) {
             return
         }
 
-        //scan filter
+        // scan filter
         val filters: MutableList<ScanFilter> = ArrayList()
         val scanFilter: ScanFilter = ScanFilter.Builder()
-            .setServiceUuid(ParcelUuid(UUID.fromString(SERVICE_STRING)))
+            .setDeviceAddress(MAC_ADDR)
             .build()
         filters.add(scanFilter)
 
