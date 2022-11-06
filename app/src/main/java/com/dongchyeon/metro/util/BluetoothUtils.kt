@@ -3,6 +3,7 @@ package com.dongchyeon.metro.util
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
+import android.util.Log
 import com.dongchyeon.metro.util.Constants.Companion.CHARACTERISTIC_COMMAND_STRING
 import com.dongchyeon.metro.util.Constants.Companion.CHARACTERISTIC_RESPONSE_STRING
 import com.dongchyeon.metro.util.Constants.Companion.SERVICE_STRING
@@ -60,7 +61,9 @@ class BluetoothUtils {
             val service = findGattService(serviceList) ?: return null
             val characteristicList = service.characteristics
             for (characteristic in characteristicList) {
+                Log.d("find", characteristic.uuid.toString())
                 if (matchCharacteristic(characteristic, uuidString)) {
+                    Log.d("return", characteristic.uuid.toString())
                     return characteristic
                 }
             }

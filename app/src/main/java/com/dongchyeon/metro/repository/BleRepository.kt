@@ -11,7 +11,6 @@ import android.content.Context.BLUETOOTH_SERVICE
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.dongchyeon.metro.util.BluetoothUtils
-import com.dongchyeon.metro.util.Constants.Companion.CLIENT_CHARACTERISTIC_CONFIG
 import com.dongchyeon.metro.util.Constants.Companion.MAC_ADDR
 import com.dongchyeon.metro.util.Event
 import kotlinx.coroutines.Dispatchers
@@ -112,6 +111,7 @@ class BleRepository(private val context: Context) {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 super.onScanResult(callbackType, result)
                 Log.i(TAG, "Remote device name: " + result.device.name)
+                Log.i(TAG, "Remote device address: " + result.device.address)
                 addScanResult(result)
             }
 
@@ -183,21 +183,35 @@ class BleRepository(private val context: Context) {
             // log for successful discovery
             Log.d(TAG, "Services discovery is successful")
             isConnect.postValue(Event(true))
+
+            gatt!!.services.forEach { gattService ->
+                Log.d("service", gattService.toString() + " / " + gattService.uuid.toString())
+                for (characteristic in gattService.characteristics) {
+                    Log.d(
+                        "characteristic",
+                        characteristic.toString() + " / " + characteristic.uuid.toString()
+                    )
+                }
+            }
+
             // find command characteristics from the GATT server
             val respCharacteristic = gatt?.let { BluetoothUtils.findResponseCharacteristic(it) }
             // disconnect if the characteristic is not found
-            if (respCharacteristic == null) {
+            /*if (respCharacteristic == null) {
                 Log.e(TAG, "Unable to find cmd characteristic")
                 disconnectGattServer()
                 return
-            }
+            }*/
             gatt.setCharacteristicNotification(respCharacteristic, true)
+
+            /* 일단 write는 쓸 필요가 없음
             // UUID for notification
-            val descriptor: BluetoothGattDescriptor = respCharacteristic.getDescriptor(
+            val descriptor: BluetoothGattDescriptor = respCharacteristic!!.getDescriptor(
                 UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG)
             )
             descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
             gatt.writeDescriptor(descriptor)
+             */
         }
 
         override fun onCharacteristicChanged(
@@ -205,7 +219,7 @@ class BleRepository(private val context: Context) {
             characteristic: BluetoothGattCharacteristic
         ) {
             super.onCharacteristicChanged(gatt, characteristic)
-            //Log.d(TAG, "characteristic changed: " + characteristic.uuid.toString())
+            Log.d(TAG, "characteristic changed: " + characteristic.uuid.toString())
             readCharacteristic(characteristic)
         }
 
