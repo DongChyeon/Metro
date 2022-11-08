@@ -18,6 +18,6 @@ class Constants {
         const val MAC_ADDR = "78:04:73:B8:4F:B9"
 
         // BluetoothGattDescriptor 고정
-        const val CLIENT_CHARACTERISTIC_CONFIG = "0000ffe1-0000-1000-8000-00805f9b34fb"
+        const val CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb"
     }
 }

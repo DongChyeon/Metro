@@ -78,6 +78,10 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        binding.nfcBtn.setOnClickListener {
+            startActivity(Intent(applicationContext, NfcActivity::class.java))
+        }
+
         initObserver(binding)
     }
 

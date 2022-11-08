@@ -8,19 +8,23 @@ import com.dongchyeon.metro.data.SeatInfo
 import com.dongchyeon.metro.data.SubwayInfo
 import com.dongchyeon.metro.data.network.NetworkRepository
 import com.dongchyeon.metro.data.network.dto.RealtimeArrivalList
+import com.dongchyeon.metro.repository.BleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SubwayViewModel @Inject constructor(private val repository: NetworkRepository) : ViewModel() {
+class SubwayViewModel @Inject constructor(
+    private val networkRepository: NetworkRepository,
+    private val bleRepository: BleRepository
+) : ViewModel() {
     private val liveData = MutableLiveData<List<SubwayInfo>>()
 
     fun getData() = liveData
 
     fun loadData(statnNm: String) {
         viewModelScope.launch {
-            val data = repository.getRealTimeStationArrival(statnNm)
+            val data = networkRepository.getRealTimeStationArrival(statnNm)
             if (data.isSuccessful) {
                 val result = data.body()!!.realtimeArrivalList
                 val stationInfo = HashMap<String, ArrayList<RealtimeArrivalList>>()
@@ -37,8 +41,15 @@ class SubwayViewModel @Inject constructor(private val repository: NetworkReposit
 
                 for (x in result) {
                     // 임산부, 노약자 잔여석을 리스트로 받음
-                    val pregnant = arrayListOf<Int>(1, 2, 0, 0, 2, 1, 1, 2)
-                    val elderly = arrayListOf<Int>(0, 2, 1, 0, 0, 2, 1, 2)
+                    val pregnant = ArrayList<Int>()
+                    val elderly = ArrayList<Int>()
+
+                    if (bleRepository.isConnected()) {
+                        pregnant.add(bleRepository.readPressure())
+                        elderly.add(bleRepository.readPressure())
+                    }
+                    pregnant.addAll(arrayListOf(3, 0, 2, 0, 2, 2, 1))
+                    elderly.addAll(arrayListOf(2, 0, 2, 0, 2, 2, 1))
 
                     if (seatInfo.containsKey(x.updnLine)) {
                         seatInfo[x.updnLine]!!.add(SeatInfo(x.trainLineNm, pregnant, elderly))

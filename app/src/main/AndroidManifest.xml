@@ -20,6 +20,7 @@
     <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
+
     <application
         android:name=".App"
         android:allowBackup="true"
@@ -33,9 +34,16 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".view.SubwayInfoActivity"
-            android:windowSoftInputMode="adjustPan|adjustUnspecified"
+            android:name=".view.NfcActivity"
             android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".view.SubwayInfoActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan|adjustUnspecified">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />

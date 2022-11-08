@@ -18,7 +18,7 @@ class SeatAdapter(private val people: String) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val current = getItem(position)
-        holder.bind(current, people)
+        holder.bind(current, people, position)
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -33,13 +33,15 @@ class SeatAdapter(private val people: String) :
             }
         }
 
-        fun bind(item: Int, people: String) {
+        fun bind(item: Int, people: String, position: Int) {
             seatCount.text = item.toString()
             if (people == "pregnant") {
-                if (item == 0) layout.setBackgroundResource(R.color.pale_pink)
+                if (position == 0) layout.setBackgroundResource(R.color.yellow)
+                else if (item == 0) layout.setBackgroundResource(R.color.pale_pink)
                 else layout.setBackgroundResource(R.color.pink)
             } else if (people == "elderly") {
-                if (item == 0) layout.setBackgroundResource(R.color.gray)
+                if (position == 0) layout.setBackgroundResource(R.color.yellow)
+                else if (item == 0) layout.setBackgroundResource(R.color.gray)
                 else layout.setBackgroundResource(R.color.black)
             }
         }
