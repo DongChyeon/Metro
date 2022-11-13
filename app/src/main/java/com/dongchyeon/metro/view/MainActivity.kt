@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
         binding.btRecyclerView.adapter = bleAdapter
         bleAdapter.setOnItemClickListener(object : BleAdapter.OnItemClickListener {
             override fun onItemClick(view: View, position: Int) {
-                binding.constraintLayout.visibility = View.GONE
+                //binding.constraintLayout.visibility = View.GONE
                 viewModel.connectDevice(bleAdapter.getDevice(position))
             }
         })
@@ -111,8 +111,12 @@ class MainActivity : AppCompatActivity() {
             binding.statusText.text = it
         }
 
-        viewModel.readTxt.observe(this) {
-            Log.d("read", it)
+        viewModel.readTxt1.observe(this) {
+            Log.d("read", "module1 : $it")
+        }
+
+        viewModel.readTxt2.observe(this) {
+            Log.d("read", "module2 : $it")
         }
     }
 

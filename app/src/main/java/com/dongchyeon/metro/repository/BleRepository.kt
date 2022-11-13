@@ -29,21 +29,33 @@ class BleRepository(private val context: Context) {
         context.getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
     val bleAdapter: BluetoothAdapter?
         get() = bleManager.adapter
-    private var bleGatt: BluetoothGatt? = null
+    private var bleGatt1: BluetoothGatt? = null
+    private var bleGatt2: BluetoothGatt? = null
 
     var scanResults: ArrayList<BluetoothDevice>? = ArrayList()
 
     var statusTxt: String = ""
-    var txtRead: String = ""
+    var txtRead1: String = ""
+    var txtRead2: String = ""
 
     var isStatusChange: Boolean = false
-    var isTxtRead: Boolean = false
+    var isTxtRead1: Boolean = false
+    var isTxtRead2: Boolean = false
 
-    fun fetchReadText() = flow {
+    fun fetchReadText1() = flow {
         while (true) {
-            if (isTxtRead) {
-                emit(txtRead)
-                isTxtRead = false
+            if (isTxtRead1) {
+                emit(txtRead1)
+                isTxtRead1 = false
+            }
+        }
+    }.flowOn(Dispatchers.Default)
+
+    fun fetchReadText2() = flow {
+        while (true) {
+            if (isTxtRead2) {
+                emit(txtRead2)
+                isTxtRead2 = false
             }
         }
     }.flowOn(Dispatchers.Default)
@@ -96,7 +108,7 @@ class BleRepository(private val context: Context) {
         Timer("SettingUp", false).schedule(3000) { stopScan() }
     }
 
-    fun stopScan() {
+    private fun stopScan() {
         bleAdapter?.bluetoothLeScanner?.stopScan(bleScanCallback)
         isScanning.postValue(Event(false))
         statusTxt = "검색 완료. 기기의 이름을 클릭해 연결하세요."
@@ -158,20 +170,24 @@ class BleRepository(private val context: Context) {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             super.onConnectionStateChange(gatt, status, newState)
             if (status == BluetoothGatt.GATT_FAILURE) {
-                disconnectGattServer()
+                disconnectGattServer(gatt)
                 return
             } else if (status != BluetoothGatt.GATT_SUCCESS) {
-                disconnectGattServer()
+                disconnectGattServer(gatt)
                 return
             }
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 // update the connection status message
-                statusTxt = "연결되었습니다."
+                statusTxt = if (bleGatt2 == null) {
+                    "블루투스 모듈 하나가 연결되었습니다."
+                } else {
+                    "블루투스 모듈이 모두 연결되었습니다."
+                }
                 isStatusChange = true
                 Log.d(TAG, "Connected to the GATT server")
                 gatt.discoverServices()
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                disconnectGattServer()
+                disconnectGattServer(gatt)
             }
         }
 
@@ -202,7 +218,7 @@ class BleRepository(private val context: Context) {
             // disconnect if the characteristic is not found
             if (respCharacteristic == null) {
                 Log.e(TAG, "Unable to find cmd characteristic")
-                disconnectGattServer()
+                disconnectGattServer(gatt)
                 return
             }
             gatt.setCharacteristicNotification(respCharacteristic, true)
@@ -221,7 +237,7 @@ class BleRepository(private val context: Context) {
         ) {
             super.onCharacteristicChanged(gatt, characteristic)
             Log.d(TAG, "characteristic changed: " + characteristic.uuid.toString())
-            readCharacteristic(characteristic)
+            readCharacteristic(gatt, characteristic)
         }
 
         override fun onCharacteristicWrite(
@@ -234,7 +250,7 @@ class BleRepository(private val context: Context) {
                 Log.d(TAG, "Characteristic written successfully")
             } else {
                 Log.e(TAG, "Characteristic write unsuccessful, status: $status")
-                disconnectGattServer()
+                disconnectGattServer(gatt)
             }
         }
 
@@ -246,7 +262,7 @@ class BleRepository(private val context: Context) {
             super.onCharacteristicRead(gatt, characteristic, status)
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.d(TAG, "Characteristic read successfully")
-                readCharacteristic(characteristic)
+                readCharacteristic(gatt, characteristic)
             } else {
                 Log.e(TAG, "Characteristic read unsuccessful, status: $status")
                 // Trying to read from the Time Characteristic? It doesnt have the property or permissions
@@ -260,22 +276,32 @@ class BleRepository(private val context: Context) {
          * @param characteristic
          */
 
-        private fun readCharacteristic(characteristic: BluetoothGattCharacteristic) {
+        private fun readCharacteristic(
+            gatt: BluetoothGatt?,
+            characteristic: BluetoothGattCharacteristic
+        ) {
             val msg = characteristic.getStringValue(0)
 
-            txtRead = msg
-            isTxtRead = true
-
-            Log.d(TAG, "read: $msg")
+            if (gatt == bleGatt1) {
+                txtRead1 = msg
+                isTxtRead1 = true
+            } else if (gatt == bleGatt2) {
+                txtRead2 = msg
+                isTxtRead2 = true
+            }
         }
     }
 
-    fun readPressure(): Int {
-        return txtRead.toInt()
+    fun getPressure(people: String): Int {
+        return if (people == "pregnant") {
+            txtRead1.toInt()
+        } else {
+            txtRead2.toInt()
+        }
     }
 
     fun isConnected(): Boolean {
-        return bleGatt != null
+        return bleGatt1 != null && bleGatt2 != null
     }
 
     /**
@@ -285,26 +311,33 @@ class BleRepository(private val context: Context) {
         // update the status
         statusTxt = "연결 중 ${device?.address}"
         isStatusChange = true
-        bleGatt = device?.connectGatt(context, false, gattClientCallback)
+        if (bleGatt1 == null) {
+            bleGatt1 = device?.connectGatt(context, false, gattClientCallback)
+        } else {
+            bleGatt2 = device?.connectGatt(context, false, gattClientCallback)
+        }
+
+        scanResults?.remove(device!!)
     }
 
     /**
      * Disconnect Gatt Server
      */
-    fun disconnectGattServer() {
+    fun disconnectGattServer(gatt: BluetoothGatt?) {
         Log.d(TAG, "Closing Gatt connection")
         // disconnect and close the gatt
-        if (bleGatt != null) {
-            bleGatt!!.disconnect()
-            bleGatt!!.close()
+        if (gatt != null) {
+            gatt.disconnect()
+            gatt.close()
             statusTxt = "연결이 끊어졌습니다."
             isStatusChange = true
             isConnect.postValue(Event(false))
         }
     }
 
+    /*
     fun writeData(cmdByteArray: ByteArray) {
-        val cmdCharacteristic = BluetoothUtils.findCommandCharacteristic(bleGatt!!)
+        val cmdCharacteristic = BluetoothUtils.findCommandCharacteristic(bleGatt1!!)
         // disconnect if the characteristic is not found
         if (cmdCharacteristic == null) {
             Log.e(TAG, "Unable to find cmd characteristic")
@@ -313,10 +346,11 @@ class BleRepository(private val context: Context) {
         }
 
         cmdCharacteristic.value = cmdByteArray
-        val success: Boolean = bleGatt!!.writeCharacteristic(cmdCharacteristic)
+        val success: Boolean = bleGatt1!!.writeCharacteristic(cmdCharacteristic)
         // check the result
         if (!success) {
             Log.e(TAG, "Failed to write command")
         }
     }
+     */
 }

@@ -45,8 +45,8 @@ class SubwayViewModel @Inject constructor(
                     val elderly = ArrayList<Int>()
 
                     if (bleRepository.isConnected()) {
-                        pregnant.add(bleRepository.readPressure())
-                        elderly.add(bleRepository.readPressure())
+                        pregnant.add(bleRepository.getPressure("pregnant"))
+                        elderly.add(bleRepository.getPressure("elderly"))
                     }
                     pregnant.addAll(arrayListOf(3, 0, 2, 0, 2, 2, 1))
                     elderly.addAll(arrayListOf(2, 0, 2, 0, 2, 2, 1))

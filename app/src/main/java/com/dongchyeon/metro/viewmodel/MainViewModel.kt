@@ -19,8 +19,10 @@ class MainViewModel @Inject constructor(private val bleRepository: BleRepository
 
     val statusTxt: LiveData<String>
         get() = bleRepository.fetchStatusText().asLiveData(viewModelScope.coroutineContext)
-    val readTxt: LiveData<String>
-        get() = bleRepository.fetchReadText().asLiveData(viewModelScope.coroutineContext)
+    val readTxt1: LiveData<String>
+        get() = bleRepository.fetchReadText1().asLiveData(viewModelScope.coroutineContext)
+    val readTxt2: LiveData<String>
+        get() = bleRepository.fetchReadText2().asLiveData(viewModelScope.coroutineContext)
 
     //ble adapter
     private val bleAdapter: BluetoothAdapter?
@@ -46,19 +48,7 @@ class MainViewModel @Inject constructor(private val bleRepository: BleRepository
         bleRepository.startScan()
     }
 
-    fun onClickDisconnect() {
-        bleRepository.disconnectGattServer()
-    }
-
     fun connectDevice(bluetoothDevice: BluetoothDevice) {
         bleRepository.connectDevice(bluetoothDevice)
-    }
-
-    fun onClickWrite() {
-        val cmdBytes = ByteArray(2)
-        cmdBytes[0] = 1
-        cmdBytes[1] = 2
-
-        bleRepository.writeData(cmdBytes)
     }
 }
