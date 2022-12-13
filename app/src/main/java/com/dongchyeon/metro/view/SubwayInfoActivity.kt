@@ -51,7 +51,7 @@ class SubwayInfoActivity : AppCompatActivity() {
         val adapter = LineAdapter(applicationContext)
         binding.pager.adapter = adapter
 
-        subwayViewModel.getData().observe(this) { data ->
+        subwayViewModel.subwayData.observe(this) { data ->
             data.let { adapter.submitList(data) }
         }
     }

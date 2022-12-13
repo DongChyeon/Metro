@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.dongchyeon.metro.R
-import com.dongchyeon.metro.data.SeatInfo
+import com.dongchyeon.metro.data.model.SeatInfo
 
 class SeatInfoAdapter(private val context: Context) :
     ListAdapter<SeatInfo, SeatInfoAdapter.ViewHolder>(SeatInfoComparator()) {

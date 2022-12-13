@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.dongchyeon.metro.R
-import com.dongchyeon.metro.data.network.dto.RealtimeArrivalList
+import com.dongchyeon.metro.data.model.dto.RealtimeArrivalList
 
 class SubwayAdapter :
     ListAdapter<RealtimeArrivalList, SubwayAdapter.ViewHolder>(SubwayComparator()) {

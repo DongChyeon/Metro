@@ -1,7 +1,7 @@
-package com.dongchyeon.metro.data.network.service
+package com.dongchyeon.metro.data.datasource.service
 
 import com.dongchyeon.metro.BuildConfig
-import com.dongchyeon.metro.data.network.dto.RealTimeStationArrival
+import com.dongchyeon.metro.data.model.dto.RealTimeStationArrival
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path

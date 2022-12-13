@@ -1,4 +1,4 @@
-package com.dongchyeon.metro.data
+package com.dongchyeon.metro.data.model
 
 data class SeatInfo(
     val trainLineNm: String,

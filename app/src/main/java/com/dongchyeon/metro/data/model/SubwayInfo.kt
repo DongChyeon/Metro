@@ -1,6 +1,6 @@
-package com.dongchyeon.metro.data
+package com.dongchyeon.metro.data.model
 
-import com.dongchyeon.metro.data.network.dto.RealtimeArrivalList
+import com.dongchyeon.metro.data.model.dto.RealtimeArrivalList
 
 data class SubwayInfo(
     val updnLine: String,

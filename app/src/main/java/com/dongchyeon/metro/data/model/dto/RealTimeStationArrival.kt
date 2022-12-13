@@ -1,4 +1,4 @@
-package com.dongchyeon.metro.data.network.dto
+package com.dongchyeon.metro.data.model.dto
 
 import com.google.gson.annotations.SerializedName
 

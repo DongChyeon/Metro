@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.dongchyeon.metro.R
-import com.dongchyeon.metro.data.SubwayInfo
+import com.dongchyeon.metro.data.model.SubwayInfo
 
 class LineAdapter(private val context: Context) :
     ListAdapter<SubwayInfo, LineAdapter.ViewHolder>(LineComparator()) {
